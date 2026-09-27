@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MarkdownViewer</RootNamespace>
+    <AssemblyName>MarkdownViewer</AssemblyName>
+
+    <!-- T003: publish self-contained single-file, sem exigir runtime .NET instalado (research.md #7) -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!-- T025: ícone do executável e do atalho no Explorer -->
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- T002 -->
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2739.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- T004: assets locais embutidos no assembly (viajam dentro do .exe single-file; Constitution II — Offline-First) -->
+    <EmbeddedResource Include="Assets\viewer.css" />
+    <EmbeddedResource Include="Assets\highlight\highlight.min.js" />
+    <EmbeddedResource Include="Assets\highlight\github.min.css" />
+  </ItemGroup>
+
+</Project>

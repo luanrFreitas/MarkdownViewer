@@ -1,0 +1,5 @@
+<Application x:Class="MarkdownViewer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Sem StartupUri: a MainWindow é criada em App.xaml.cs para receber o caminho do arquivo (contracts/cli-invocation.md). -->
+</Application>

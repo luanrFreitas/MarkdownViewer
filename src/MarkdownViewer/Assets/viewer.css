@@ -1,0 +1,109 @@
+:root {
+  --md-fg: #1b1f23;
+  --md-bg: #ffffff;
+  --md-muted: #57606a;
+  --md-border: #d0d7de;
+  --md-code-bg: #f6f8fa;
+  --md-link: #0969da;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --md-fg: #e6edf3;
+    --md-bg: #0d1117;
+    --md-muted: #8b949e;
+    --md-border: #30363d;
+    --md-code-bg: #161b22;
+    --md-link: #4493f8;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--md-bg);
+  color: var(--md-fg);
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", "Segoe UI Variable", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.md-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.md-empty-state, .md-error-state {
+  max-width: 800px;
+  margin: 4rem auto;
+  text-align: center;
+  color: var(--md-muted);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+
+h1 { font-size: 2em; border-bottom: 1px solid var(--md-border); padding-bottom: 0.3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid var(--md-border); padding-bottom: 0.3em; }
+
+p, ul, ol, blockquote, table, pre { margin-top: 0; margin-bottom: 1em; }
+
+a { color: var(--md-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img { max-width: 100%; }
+
+blockquote {
+  margin: 0 0 1em;
+  padding: 0 1em;
+  color: var(--md-muted);
+  border-left: 0.25em solid var(--md-border);
+}
+
+code {
+  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+  background: var(--md-code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+pre {
+  background: var(--md-code-bg);
+  border-radius: 6px;
+  padding: 1em;
+  overflow: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+
+th, td {
+  border: 1px solid var(--md-border);
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
+th { background: var(--md-code-bg); font-weight: 600; }
+
+ul.contains-task-list { list-style: none; padding-left: 0.2em; }

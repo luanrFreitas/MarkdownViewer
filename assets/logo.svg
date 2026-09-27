@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Logo circular escuro</title>
+  <desc>Selo circular escuro estilo modo noturno, com anel em gradiente ciano para violeta e M branco no centro.</desc>
+  <defs>
+    <linearGradient id="bg13" x1="40" y1="40" x2="472" y2="472" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E1B4B"/>
+    </linearGradient>
+    <linearGradient id="ring13" x1="361" y1="74" x2="74" y2="361" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="248" fill="url(#bg13)"/>
+  <path d="M361,74 A210,210 0 1 1 74,361" fill="none" stroke="url(#ring13)" stroke-width="7" stroke-linecap="round"/>
+  <polyline points="180,320 180,196 256,268 332,196 332,320" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

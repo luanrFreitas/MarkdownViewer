@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore tests/MarkdownViewer.Tests/MarkdownViewer.Tests.csproj
+
+      - name: Test
+        run: dotnet test tests/MarkdownViewer.Tests/MarkdownViewer.Tests.csproj -c Release --no-restore
+
+      - name: Publish (self-contained, single-file, win-x64)
+        run: >
+          dotnet publish src/MarkdownViewer/MarkdownViewer.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Package release asset
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          Compress-Archive -Path publish/MarkdownViewer.exe -DestinationPath "MarkdownViewer-$version-win-x64.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: MarkdownViewer-${{ github.ref_name }}-win-x64.zip
+          generate_release_notes: true
