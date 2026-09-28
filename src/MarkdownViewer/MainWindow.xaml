@@ -10,14 +10,26 @@
         PreviewKeyDown="Window_PreviewKeyDown">
     <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#F3F3F3">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="FontSize" Value="18" />
+                    <Setter Property="Margin" Value="6" />
+                    <Setter Property="Padding" Value="10,4" />
+                    <Setter Property="MinWidth" Value="40" />
+                </Style>
+            </StackPanel.Resources>
             <Button x:Name="SetAsDefaultButton"
-                    Content="Definir como visualizador padrão de .md"
-                    Margin="6" Padding="8,4"
+                    Content="⭐"
+                    ToolTip="Definir como visualizador padrão de .md"
                     Click="SetAsDefaultButton_Click" />
             <Button x:Name="OpenFileButton"
-                    Content="Abrir arquivo (Ctrl+O)"
-                    Margin="6" Padding="8,4"
+                    Content="📂"
+                    ToolTip="Abrir arquivo (Ctrl+O)"
                     Click="OpenFileButton_Click" />
+            <Button x:Name="RecentFilesButton"
+                    Content="🕘"
+                    ToolTip="Arquivos recentes"
+                    Click="RecentFilesButton_Click" />
         </StackPanel>
         <wv2:WebView2 x:Name="WebView" />
     </DockPanel>

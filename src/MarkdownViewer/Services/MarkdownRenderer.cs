@@ -4,8 +4,6 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
 using MarkdigDocument = Markdig.Syntax.MarkdownDocument;
 
 namespace MarkdownViewer.Services;
@@ -49,14 +47,14 @@ public static class MarkdownRenderer
         try
         {
             MarkdigDocument document = Markdig.Markdown.Parse(rawMarkdown, Pipeline);
-            RewriteRelativeUrls(document, baseDirectory);
 
             using var writer = new StringWriter();
             var renderer = new Markdig.Renderers.HtmlRenderer(writer);
             Pipeline.Setup(renderer);
             renderer.Render(document);
 
-            return WrapPage($"<div class=\"md-content\">{writer}</div>");
+            var contentHtml = RewriteRelativeUrlsInHtml(writer.ToString(), baseDirectory);
+            return WrapPage($"<div class=\"md-content\">{contentHtml}</div>");
         }
         catch (Exception)
         {
@@ -70,23 +68,35 @@ public static class MarkdownRenderer
         new(@"(?<attr>\bsrc|\bhref)\s*=\s*(?<quote>[""'])(?<url>[^""']*)\k<quote>",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    private static void RewriteRelativeUrls(MarkdigDocument document, string baseDirectory)
+    private static readonly Regex PreBlockSplitter =
+        new(@"(<pre\b[\s\S]*?</pre>)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// Reescreve src/href relativos direto no HTML já renderizado (T031/T048, FR-003) — cobre
+    /// links/imagens de sintaxe Markdown (`![]()`/`[]()`), HTML inline (`<img>` dentro de um
+    /// parágrafo) e blocos HTML de várias linhas (`<div>...<img>...</div>`, ex.: o cabeçalho
+    /// centralizado do README) de uma vez só, sem precisar percorrer tipos de nó diferentes da
+    /// AST do Markdig (LinkInline/HtmlInline/HtmlBlock têm estruturas internas distintas — mexer
+    /// direto na string final é mais simples e cobre todos igual). Pula o conteúdo de blocos
+    /// `<pre>` (blocos de código) para não reescrever um `src="..."` que apareça só como texto de
+    /// exemplo dentro de um code sample.
+    /// </summary>
+    private static string RewriteRelativeUrlsInHtml(string html, string baseDirectory)
     {
-        foreach (var link in document.Descendants<LinkInline>())
+        var parts = PreBlockSplitter.Split(html);
+        for (var i = 0; i < parts.Length; i++)
         {
-            link.Url = ResolveUrl(link.Url, baseDirectory);
+            if (i % 2 == 0) // partes de fora de <pre>...</pre> (índices ímpares são os blocos capturados)
+            {
+                parts[i] = RawHtmlUrlAttribute.Replace(parts[i], match =>
+                {
+                    var resolved = ResolveUrl(match.Groups["url"].Value, baseDirectory);
+                    return $"{match.Groups["attr"].Value}={match.Groups["quote"].Value}{resolved}{match.Groups["quote"].Value}";
+                });
+            }
         }
 
-        // T031/FR-003: <img>/<a> escritos como HTML bruto (comum p/ controlar tamanho de imagem)
-        // não viram LinkInline — o Markdig só preserva o texto da tag. Reescrevemos src/href aqui também.
-        foreach (var html in document.Descendants<HtmlInline>())
-        {
-            html.Tag = RawHtmlUrlAttribute.Replace(html.Tag, match =>
-            {
-                var resolved = ResolveUrl(match.Groups["url"].Value, baseDirectory);
-                return $"{match.Groups["attr"].Value}={match.Groups["quote"].Value}{resolved}{match.Groups["quote"].Value}";
-            });
-        }
+        return string.Concat(parts);
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using MarkdownViewer.Models;
@@ -25,6 +26,15 @@ public partial class MainWindow : Window
         InitializeComponent();
         _pendingInitialPath = initialFilePath;
         Loaded += MainWindow_Loaded;
+        RefreshSetAsDefaultButtonVisibility();
+    }
+
+    // Esconde o botão quando o app já é o visualizador padrão de .md — a ação não teria mais efeito.
+    private void RefreshSetAsDefaultButtonVisibility()
+    {
+        SetAsDefaultButton.Visibility = FileAssociationService.IsRegisteredAsDefault()
+            ? Visibility.Collapsed
+            : Visibility.Visible;
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -151,6 +161,7 @@ public partial class MainWindow : Window
 
             _session.SetDocument(document, watcher);
             Title = _session.WindowTitle;
+            RecentFilesService.Add(path);
             DisplayHtml(html, document.BaseDirectory);
         }
         catch (Exception ex)
@@ -213,9 +224,34 @@ public partial class MainWindow : Window
         try
         {
             FileAssociationService.Register();
-            MessageBox.Show(
-                "Markdown Viewer definido como visualizador padrão de .md e .markdown.",
-                "Markdown Viewer", MessageBoxButton.OK, MessageBoxImage.Information);
+            RefreshSetAsDefaultButtonVisibility();
+
+            if (FileAssociationService.IsRegisteredAsDefault())
+            {
+                MessageBox.Show(
+                    "Markdown Viewer definido como visualizador padrão de .md e .markdown.",
+                    "Markdown Viewer", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Já existe uma escolha explícita (UserChoice) apontando pra outro app — o Windows
+            // bloqueia qualquer registro de terceiros de sobrescrever isso silenciosamente
+            // (proteção anti-sequestro de associação de arquivo, desde o Windows 8). SHOpenWithDialog
+            // com flags de registro foi tentado (T046) mas o Windows moderno só mostra uma caixa
+            // "vá para Configurações" em vez do diálogo com a opção de registro — a Microsoft
+            // desativou esse atalho de propósito. Não existe mais nenhuma API sancionada para pular
+            // a busca manual; `ms-settings:defaultapps` é o único caminho que resta (T047).
+            var openSettings = MessageBox.Show(
+                "O Markdown Viewer foi registrado, mas o Windows já tem outro programa definido " +
+                "como padrão para .md — só as Configurações do Windows podem trocar isso (é uma " +
+                "proteção do próprio sistema, não uma limitação deste app). Quer abrir a tela de " +
+                "Aplicativos Padrão agora para escolher o Markdown Viewer manualmente?",
+                "Markdown Viewer", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+            if (openSettings == MessageBoxResult.Yes)
+            {
+                Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true });
+            }
         }
         catch (Exception ex)
         {
@@ -248,6 +284,30 @@ public partial class MainWindow : Window
         {
             _ = OpenDocumentAsync(dialog.FileName);
         }
+    }
+
+    // Abre um menu suspenso com os últimos arquivos abertos (RecentFilesService), mais recente primeiro.
+    private void RecentFilesButton_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu();
+        var recents = RecentFilesService.GetExisting();
+
+        if (recents.Count == 0)
+        {
+            menu.Items.Add(new MenuItem { Header = "Nenhum arquivo recente", IsEnabled = false });
+        }
+        else
+        {
+            foreach (var path in recents)
+            {
+                var item = new MenuItem { Header = Path.GetFileName(path), ToolTip = path };
+                item.Click += (_, _) => _ = OpenDocumentAsync(path);
+                menu.Items.Add(item);
+            }
+        }
+
+        menu.PlacementTarget = RecentFilesButton;
+        menu.IsOpen = true;
     }
 
     // T017: arrastar-e-soltar — FR-004.

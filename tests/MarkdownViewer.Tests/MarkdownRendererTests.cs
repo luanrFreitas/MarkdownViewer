@@ -106,6 +106,32 @@ public class MarkdownRendererTests
     }
 
     [Fact]
+    public void Render_ImageInsideMultiLineHtmlBlock_ResolvesRelativeSrc()
+    {
+        // T048 (achado em produção): um <img> dentro de um <div>...</div> de várias linhas (padrão
+        // comum de cabeçalho centralizado de README) é um HtmlBlock pro Markdig, não um HtmlInline —
+        // T031 só cobria HtmlInline. O logo do README.md ficava quebrado por causa disso.
+        var markdown = "<div align=\"center\">\n  <img src=\"assets/logo.svg\" width=\"120\" alt=\"Logo\" />\n\n  # Título\n</div>\n";
+
+        var html = MarkdownRenderer.Render(markdown, @"C:\repo");
+
+        Assert.Contains("https://mdviewer.local/assets/logo.svg", html);
+    }
+
+    [Fact]
+    public void Render_FakeAttributeInsideCodeBlock_IsNotRewritten()
+    {
+        // O rewrite agora atua na string HTML já renderizada, não na AST — precisa preservar
+        // exemplos de código que contenham algo parecido com src="..." como texto literal.
+        var markdown = "```html\n<img src=\"nao-deveria-mudar.png\">\n```";
+
+        var html = MarkdownRenderer.Render(markdown, @"C:\repo");
+
+        Assert.Contains("nao-deveria-mudar.png", html);
+        Assert.DoesNotContain("mdviewer.local", html);
+    }
+
+    [Fact]
     public void Render_RelativeImagePath_OutsideBaseDirectory_FallsBackToFileUri()
     {
         // Fora da árvore de baseDirectory o host virtual não alcança — melhor esforço via file://.
